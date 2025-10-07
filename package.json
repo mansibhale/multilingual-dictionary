@@ -1,28 +1,25 @@
 {
-  "name": "multilingual",
-  "version": "0.1.0",
+  "name": "multilingual-dictionary",
+  "version": "1.0.0",
   "private": true,
   "dependencies": {
-    "@testing-library/dom": "^10.4.1",
-    "@testing-library/jest-dom": "^6.9.1",
-    "@testing-library/react": "^16.3.0",
-    "@testing-library/user-event": "^13.5.0",
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0",
+    "framer-motion": "^10.12.16",
+    "lucide-react": "^0.264.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
     "react-scripts": "5.0.1",
-    "web-vitals": "^2.1.4"
+    "web-vitals": "^5.1.0"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.14",
+    "postcss": "^8.4.31",
+    "tailwindcss": "^3.3.3"
   },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
   },
   "browserslist": {
     "production": [
