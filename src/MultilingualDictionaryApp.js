@@ -1,4 +1,3 @@
-// App.js
 import Papa from 'papaparse';
 import React, { useState, useEffect } from 'react';
 import { Book, Star, Clock, Home, Sparkles, X, LogOut } from 'lucide-react';
