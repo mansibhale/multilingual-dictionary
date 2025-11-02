@@ -2,6 +2,7 @@
   "name": "multilingual-dictionary",
   "version": "1.0.0",
   "private": true,
+  "main": "electron-main.js",
   "dependencies": {
     "firebase": "^12.4.0",
     "framer-motion": "^10.12.16",
@@ -14,14 +15,48 @@
   },
   "devDependencies": {
     "autoprefixer": "^10.4.14",
+    "concurrently": "^9.2.1",
+    "cross-env": "^10.1.0",
+    "electron": "^39.0.0",
+    "electron-builder": "^26.0.12",
     "postcss": "^8.4.31",
-    "tailwindcss": "^3.3.3"
+    "tailwindcss": "^3.3.3",
+    "wait-on": "^9.0.1"
   },
   "scripts": {
     "start": "react-scripts start",
+    "electron:dev": "concurrently -k \"cross-env BROWSER=none npm start\" \"wait-on http://localhost:3000 && cross-env ELECTRON_START_URL=http://localhost:3000 electron .\"",
+
     "build": "react-scripts build",
+    "postbuild": "node ./scripts/copy-electron-files.js",
+    "dist": "npm run build && electron-builder --dir",
+    "package": "npm run build && electron-builder",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
+  },
+  "build": {
+    "appId": "com.sakshi.multilingualdictionary",
+    "productName": "Multilingual Dictionary",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "build/**/*",
+      "node_modules/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": "nsis"
+    },
+    "mac": {
+      "target": "dmg"
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ]
+    }
   },
   "browserslist": {
     "production": [
