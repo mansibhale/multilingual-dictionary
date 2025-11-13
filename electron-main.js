@@ -15,6 +15,8 @@ function createWindow() {
     }
   });
 
+
+
   if (isDev) {
     const url = process.env.ELECTRON_START_URL || 'http://localhost:3000';
     win.loadURL(url);
@@ -24,6 +26,20 @@ function createWindow() {
     win.loadFile(path.join(__dirname, 'build', 'index.html'));
   }
 }
+
+
+const { ipcMain } = require('electron');
+const db = require('./db');  // Import our db helper
+
+ipcMain.handle('get-words', async () => {
+  return new Promise((resolve, reject) => {
+    db.getWords((err, rows) => {
+      if (err) reject(err);
+      else resolve(rows);
+    });
+  });
+});
+
 
 app.whenReady().then(createWindow);
 
