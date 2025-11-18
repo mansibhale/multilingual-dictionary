@@ -39,18 +39,19 @@ export default function MultilingualDictionaryApp() {
 
   const languages = ['English', 'Hindi', 'Marathi', 'Sanskrit'];
 
-  // Load CSV dictionary
   useEffect(() => {
-    Papa.parse('/sample.csv', {
-      header: true,
-      download: true,
-      skipEmptyLines: true,
-      complete: (results) => {
-        setDictionary(results.data);
-        pickWordOfDay(results.data);
-      }
-    });
-  }, []);
+  async function loadDictionary() {
+    try {
+      const data = await window.database.getWords();
+      setDictionary(data);
+      pickWordOfDay(data);
+    } catch (err) {
+      console.error("Error loading dictionary:", err);
+    }
+  }
+  loadDictionary();
+}, []);
+
 
   // Save bookmarks & history
   const saveUserData = async (bookmarks, history) => {

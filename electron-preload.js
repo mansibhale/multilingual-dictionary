@@ -15,3 +15,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
     if (valid.includes(channel)) ipcRenderer.on(channel, (event, ...args) => func(...args));
   }
 });
+
+contextBridge.exposeInMainWorld('database', {
+  getWords: () => ipcRenderer.invoke('get-words')
+});
+
