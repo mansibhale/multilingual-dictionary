@@ -6,6 +6,8 @@ import { db, auth, googleProvider } from './firebase';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { signInWithPopup, signOut } from 'firebase/auth';
 import SpeechToText from './SpeechToText';
+import Chatbot from "./Chatbot";
+
 
 export default function MultilingualDictionaryApp() {
   const [user, setUser] = useState(null);
@@ -317,6 +319,10 @@ export default function MultilingualDictionaryApp() {
   Choose your translation languages and explore words across cultures 🌏
 </p>
 
+{/* Chatbot Section */}
+<div style={{ marginTop: "50px", width: "100%" }}>
+  <Chatbot />
+</div>
 
 
           </motion.div>
