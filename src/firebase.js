@@ -1,20 +1,27 @@
 import { initializeApp } from "firebase/app";
-import { getAuth, GoogleAuthProvider } from "firebase/auth"; // <-- add GoogleAuthProvider
+import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
+// Firebase configuration from environment variables
 const firebaseConfig = {
-  apiKey: "AIzaSyAiil_fmXGK9aBsfc98YbG06OEQgoJ-1OA",
-  authDomain: "multilingual-dictionary-a3a63.firebaseapp.com",
-  projectId: "multilingual-dictionary-a3a63",
-  storageBucket: "multilingual-dictionary-a3a63.firebasestorage.app",
-  messagingSenderId: "56088406059",
-  appId: "1:56088406059:web:4f55e71420d9da76caa26e",
-  measurementId: "G-GE5DF6HFEW"
+  apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
+  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.REACT_APP_FIREBASE_APP_ID,
+  measurementId: process.env.REACT_APP_FIREBASE_MEASUREMENT_ID
 };
+// DEBUG: Check if environment variables are loaded
+console.log('Firebase API Key:', process.env.REACT_APP_FIREBASE_API_KEY);
+console.log('All env variables:', process.env);
 
+// Initialize Firebase
 const app = initializeApp(firebaseConfig);
+
+// Export services
 export const auth = getAuth(app);
 export const db = getFirestore(app);
+export const googleProvider = new GoogleAuthProvider();
 
-// Google login provider
-export const googleProvider = new GoogleAuthProvider(); // now this will work
+export default app;

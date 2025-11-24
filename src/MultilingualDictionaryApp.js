@@ -4,6 +4,7 @@ import { Book, Star, Clock, Home, Sparkles, X, LogOut } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { db, auth, googleProvider } from './firebase';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { saveUserDataEncrypted, getUserDataDecrypted } from './services/firebaseService';
 import { signInWithPopup, signOut } from 'firebase/auth';
 import SpeechToText from './SpeechToText';
 import Chatbot from "./Chatbot";
@@ -56,21 +57,28 @@ export default function MultilingualDictionaryApp() {
   // Save bookmarks & history
   const saveUserData = async (bookmarks, history) => {
     if (!user) return;
-    const userDoc = doc(db, 'users', user.uid);
-    await setDoc(userDoc, { bookmarks, history }, { merge: true });
+    try {
+      await saveUserDataEncrypted(user.uid, { bookmarks, history });
+    } catch (error) {
+      console.error('Error saving encrypted data:', error);
+    }
   };
 
   // Load bookmarks & history
   const loadUserData = async (user) => {
-    const userDoc = doc(db, 'users', user.uid);
-    const docSnap = await getDoc(userDoc);
-    if (docSnap.exists()) {
-      const data = docSnap.data();
-      setBookmarks(data.bookmarks || []);
-      setHistory(data.history || []);
+    try {
+      const data = await getUserDataDecrypted(user.uid);
+      if (data) {
+        setBookmarks(data.bookmarks || []);
+        setHistory(data.history || []);
+      }
+    } catch (error) {
+      console.error('Error loading encrypted data:', error);
+      // Fallback to empty arrays if decryption fails
+      setBookmarks([]);
+      setHistory([]);
     }
   };
-
   // Monitor login state
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((currentUser) => {
