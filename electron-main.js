@@ -15,13 +15,15 @@ function createWindow() {
     }
   });
 
+  
+  win.setMenuBarVisibility(false);
+  win.setMenu(null);
+
 
 
   if (isDev) {
     const url = process.env.ELECTRON_START_URL || 'http://localhost:3000';
     win.loadURL(url);
-    // optionally open devtools while developing
-    win.webContents.openDevTools();
   } else {
     win.loadFile(path.join(__dirname, 'build', 'index.html'));
   }

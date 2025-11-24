@@ -24,6 +24,7 @@ export default function MultilingualDictionaryApp() {
   const [showKeyboard, setShowKeyboard] = useState(false);
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  
 
   const devanagariKeys = [
     '\u0905', '\u0906', '\u0907', '\u0908', '\u0909', '\u090A', '\u090B', '\u0960', '\u090C', 
