@@ -1,6 +1,6 @@
 import Papa from 'papaparse';
 import React, { useState, useEffect } from 'react';
-import { Book, Star, Clock, Home, Sparkles, X, LogOut } from 'lucide-react';
+import { Book, Star, Clock, Home, Sparkles, X, LogOut, Volume2, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { db, auth, googleProvider } from './firebase';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
@@ -9,6 +9,121 @@ import { signInWithPopup, signOut } from 'firebase/auth';
 import SpeechToText from './SpeechToText';
 import Chatbot from "./Chatbot";
 
+// Text-to-Speech Component
+function TextToSpeech({ text, language, className = "" }) {
+  const [voices, setVoices] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isAvailable, setIsAvailable] = useState(true);
+
+  useEffect(() => {
+    const loadVoices = () => {
+      const availableVoices = window.speechSynthesis.getVoices();
+      setVoices(availableVoices);
+      
+      if (!window.speechSynthesis) {
+        setIsAvailable(false);
+      }
+    };
+
+    loadVoices();
+    if (window.speechSynthesis) {
+      window.speechSynthesis.onvoiceschanged = loadVoices;
+    }
+  }, []);
+
+  const getLanguageCode = (lang) => {
+    const langMap = {
+      'English': 'en-US',
+      'Hindi': 'hi-IN',
+      'Marathi': 'hi-IN',
+      'Sanskrit': 'hi-IN'
+    };
+    return langMap[lang] || 'en-US';
+  };
+
+  const findVoiceForLanguage = (langCode, language) => {
+    if (voices.length === 0) return null;
+
+    let voice = voices.find(v => v.lang === langCode);
+    
+    if (!voice) {
+      const langPrefix = langCode.split('-')[0];
+      voice = voices.find(v => v.lang.startsWith(langPrefix));
+    }
+    
+    if (!voice && (language === 'Marathi' || language === 'Sanskrit')) {
+      voice = voices.find(v => v.lang.startsWith('hi'));
+    }
+    
+    return voice || voices[0];
+  };
+
+  const speakWord = () => {
+    if (!text || !isAvailable) return;
+
+    window.speechSynthesis.cancel();
+    
+    setIsLoading(true);
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    const langCode = getLanguageCode(language);
+    utterance.lang = langCode;
+    
+    const voice = findVoiceForLanguage(langCode, language);
+    if (voice) {
+      utterance.voice = voice;
+      console.log(`Using voice: ${voice.name} (${voice.lang}) for ${language}`);
+    }
+
+    utterance.rate = language === 'English' ? 0.9 : 0.75;
+    utterance.pitch = 1;
+    utterance.volume = 1;
+
+    utterance.onend = () => {
+      setIsLoading(false);
+    };
+
+    utterance.onerror = (event) => {
+      console.error('Speech synthesis error:', event);
+      setIsLoading(false);
+      
+      if (event.error !== 'interrupted') {
+        alert(`Error playing audio: ${event.error}. Your browser may not support ${language} voices.`);
+      }
+    };
+
+    try {
+      window.speechSynthesis.speak(utterance);
+    } catch (error) {
+      console.error('Speech error:', error);
+      setIsLoading(false);
+    }
+  };
+
+  if (!isAvailable) {
+    return null;
+  }
+
+  return (
+    <button
+      onClick={speakWord}
+      disabled={isLoading || !text}
+      className={`inline-flex items-center justify-center p-2 rounded-full transition-colors ${
+        isLoading || !text
+          ? 'bg-gray-300 cursor-not-allowed'
+          : 'bg-purple-500 hover:bg-purple-600 text-white'
+      } ${className}`}
+      title={`Pronounce in ${language}`}
+      aria-label={`Speak ${text} in ${language}`}
+    >
+      {isLoading ? (
+        <Loader2 className="w-5 h-5 animate-spin" />
+      ) : (
+        <Volume2 className="w-5 h-5" />
+      )}
+    </button>
+  );
+}
 
 export default function MultilingualDictionaryApp() {
   const [user, setUser] = useState(null);
@@ -42,20 +157,18 @@ export default function MultilingualDictionaryApp() {
   const languages = ['English', 'Hindi', 'Marathi', 'Sanskrit'];
 
   useEffect(() => {
-  async function loadDictionary() {
-    try {
-      const data = await window.database.getWords();
-      setDictionary(data);
-      pickWordOfDay(data);
-    } catch (err) {
-      console.error("Error loading dictionary:", err);
+    async function loadDictionary() {
+      try {
+        const data = await window.database.getWords();
+        setDictionary(data);
+        pickWordOfDay(data);
+      } catch (err) {
+        console.error("Error loading dictionary:", err);
+      }
     }
-  }
-  loadDictionary();
-}, []);
+    loadDictionary();
+  }, []);
 
-
-  // Save bookmarks & history
   const saveUserData = async (bookmarks, history) => {
     if (!user) return;
     try {
@@ -65,7 +178,6 @@ export default function MultilingualDictionaryApp() {
     }
   };
 
-  // Load bookmarks & history
   const loadUserData = async (user) => {
     try {
       const data = await getUserDataDecrypted(user.uid);
@@ -75,12 +187,11 @@ export default function MultilingualDictionaryApp() {
       }
     } catch (error) {
       console.error('Error loading encrypted data:', error);
-      // Fallback to empty arrays if decryption fails
       setBookmarks([]);
       setHistory([]);
     }
   };
-  // Monitor login state
+
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((currentUser) => {
       if (currentUser) {
@@ -93,12 +204,10 @@ export default function MultilingualDictionaryApp() {
     return unsubscribe;
   }, []);
 
-  // Auto-save whenever bookmarks or history change
   useEffect(() => {
     saveUserData(bookmarks, history);
   }, [bookmarks, history]);
 
-  // Google login
   const handleLogin = async () => {
     try {
       const result = await signInWithPopup(auth, googleProvider);
@@ -113,7 +222,6 @@ export default function MultilingualDictionaryApp() {
     setUser(null);
   };
 
-  // Dictionary functionality
   const handleSearch = () => {
     if (inputWord.trim() === '') return;
     const row = dictionary.find(item => item[fromLang]?.toLowerCase() === inputWord.toLowerCase());
@@ -166,7 +274,6 @@ export default function MultilingualDictionaryApp() {
     setShowSuggestions(filtered.length > 0);
   };
 
-  // --- LOGIN PAGE ---
   if (!user) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-purple-50 via-purple-100 to-purple-200">
@@ -181,17 +288,15 @@ export default function MultilingualDictionaryApp() {
     );
   }
 
-  // --- MAIN APP (after login) ---
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-purple-100 to-purple-200 font-sans p-4">
 
-      {/* Navbar */}
       <nav className="flex justify-around bg-purple-200 shadow-md py-4 rounded-xl sticky top-0 z-50 mb-6">
         {[{ id: 'home', icon: <Home />, label: 'Home' },
           { id: 'bookmarks', icon: <Star />, label: 'Bookmarks' },
           { id: 'history', icon: <Clock />, label: 'History' },
           { id: 'word', icon: <Sparkles />, label: 'Word of the Day' },
-          { id: 'about', icon: <Book />, label: 'About' } // About tab
+          { id: 'about', icon: <Book />, label: 'About' }
         ].map(tab => (
           <button
             key={tab.id}
@@ -208,20 +313,17 @@ export default function MultilingualDictionaryApp() {
 
       <AnimatePresence mode="wait">
 
-        {/* Home Tab */}
         {activeTab === 'home' && (
           <motion.div key="home" className="p-10 flex flex-col items-center relative"
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
 
             <h1 className="text-4xl font-bold mb-8 text-purple-800">भाषा-Vault</h1>
 
-            {/* Floating bubbles */}
             <div className="absolute top-0 left-0 w-32 h-32 bg-purple-200 rounded-full opacity-30 animate-pulse -z-10"></div>
             <div className="absolute top-20 right-0 w-24 h-24 bg-purple-300 rounded-full opacity-20 animate-pulse -z-10"></div>
             <div className="absolute bottom-0 left-20 w-28 h-28 bg-purple-100 rounded-full opacity-25 animate-pulse -z-10"></div>
 
             <div className="bg-gradient-to-br from-purple-100 via-purple-50 to-purple-200 p-8 rounded-2xl shadow-lg w-full max-w-md flex flex-col items-center gap-6">
-              {/* Language selection */}
               <div className="flex justify-between items-center w-full gap-4">
                 <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-lg shadow-sm flex-1">
                   <Book className="text-purple-500" />
@@ -246,7 +348,6 @@ export default function MultilingualDictionaryApp() {
                 </div>
               </div>
 
-              {/* Word Input with autocomplete and speech */}
               <div className="relative w-full">
                 <input
                   type="text"
@@ -279,7 +380,6 @@ export default function MultilingualDictionaryApp() {
                 )}
               </div>
 
-              {/* Keyboard Toggle */}
               <button
                 onClick={() => setShowKeyboard(!showKeyboard)}
                 className="w-full bg-purple-200 text-purple-700 px-4 py-2 rounded-lg hover:bg-purple-300 transition"
@@ -287,7 +387,6 @@ export default function MultilingualDictionaryApp() {
                 {showKeyboard ? 'Hide' : 'Show'} Keyboard
               </button>
 
-              {/* Devanagari keyboard */}
               {showKeyboard && (
                 <div className="grid grid-cols-10 gap-2 mt-4 bg-purple-50 p-4 rounded-xl shadow-inner">
                   {devanagariKeys.map((char, i) => (
@@ -302,7 +401,6 @@ export default function MultilingualDictionaryApp() {
                 </div>
               )}
 
-              {/* Translate Button */}
               <button
                 onClick={handleSearch}
                 className="w-full bg-purple-500 hover:bg-purple-600 text-white px-6 py-3 rounded-xl font-semibold shadow-md transition transform hover:-translate-y-1 hover:scale-105"
@@ -310,10 +408,15 @@ export default function MultilingualDictionaryApp() {
                 Translate
               </button>
 
-              {/* Output */}
-              {outputWord && (
-                <div className="mt-4 w-full bg-white p-4 rounded-xl shadow-md text-center">
-                  <p className="text-xl font-medium text-purple-800">{outputWord}</p>
+              {outputWord && outputWord !== 'Word not found in dictionary' && (
+                <div className="mt-4 w-full bg-white p-4 rounded-xl shadow-md">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-xl font-medium text-purple-800">{outputWord}</p>
+                    <TextToSpeech 
+                      text={outputWord.split(' → ')[1]} 
+                      language={toLang}
+                    />
+                  </div>
                   <button
                     onClick={() => handleBookmark(outputWord)}
                     className="mt-2 text-purple-600 hover:underline"
@@ -322,115 +425,137 @@ export default function MultilingualDictionaryApp() {
                   </button>
                 </div>
               )}
+
+              {outputWord === 'Word not found in dictionary' && (
+                <div className="mt-4 w-full bg-white p-4 rounded-xl shadow-md text-center">
+                  <p className="text-xl font-medium text-purple-800">{outputWord}</p>
+                </div>
+              )}
             </div>
 
             <p className="mt-6 text-purple-700 text-center text-lg font-medium">
-  Choose your translation languages and explore words across cultures 🌏
-</p>
+              Choose your translation languages and explore words across cultures 🌏
+            </p>
 
-{/* Chatbot Section */}
-<div style={{ marginTop: "50px", width: "100%" }}>
-  <Chatbot />
-</div>
-
+            <div style={{ marginTop: "50px", width: "100%" }}>
+              <Chatbot />
+            </div>
 
           </motion.div>
         )}
 
-        {/* Bookmarks Tab */}
         {activeTab === 'bookmarks' && (
           <motion.div key="bookmarks" className="p-8" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
             <h2 className="text-2xl font-semibold mb-4 text-purple-800">Bookmarked Words</h2>
             {bookmarks.length === 0 ? <p className="text-purple-700">No bookmarks yet.</p> : (
               <ul className="space-y-2">
-                {bookmarks.map((w, i) => (
-                  <li key={i} className="flex justify-between items-center bg-purple-50 p-3 rounded-lg shadow-sm hover:bg-purple-100 transition">
-                    <span className="text-purple-800">{w}</span>
-                    <button onClick={() => deleteBookmark(w)} className="text-red-500 hover:text-red-700">
-                      <X size={18} />
-                    </button>
-                  </li>
-                ))}
+                {bookmarks.map((w, i) => {
+                  const parts = w.split(' → ');
+                  const translatedWord = parts[1] || w;
+                  return (
+                    <li key={i} className="flex justify-between items-center bg-purple-50 p-3 rounded-lg shadow-sm hover:bg-purple-100 transition">
+                      <span className="text-purple-800">{w}</span>
+                      <div className="flex items-center gap-2">
+                        <TextToSpeech text={translatedWord} language={toLang} />
+                        <button onClick={() => deleteBookmark(w)} className="text-red-500 hover:text-red-700">
+                          <X size={18} />
+                        </button>
+                      </div>
+                    </li>
+                  );
+                })}
               </ul>
             )}
           </motion.div>
         )}
 
-        {/* History Tab */}
         {activeTab === 'history' && (
           <motion.div key="history" className="p-8" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
             <h2 className="text-2xl font-semibold mb-4 text-purple-800">Search History</h2>
             {history.length === 0 ? <p className="text-purple-700">No searches yet.</p> : (
               <div className="space-y-4">
-                {history.map((w, i) => (
-                  <div key={i} className="bg-purple-50 p-3 rounded-lg shadow-sm hover:bg-purple-100 transition">
-                    <p className="text-purple-800">{w}</p>
-                  </div>
-                ))}
+                {history.map((w, i) => {
+                  const parts = w.split(' → ');
+                  const translatedWord = parts[1] || w;
+                  return (
+                    <div key={i} className="bg-purple-50 p-3 rounded-lg shadow-sm hover:bg-purple-100 transition flex justify-between items-center">
+                      <p className="text-purple-800">{w}</p>
+                      <TextToSpeech text={translatedWord} language={toLang} />
+                    </div>
+                  );
+                })}
               </div>
             )}
           </motion.div>
         )}
 
-        {/* Word of the Day */}
         {activeTab === 'word' && wordOfDay && (
           <motion.div key="word" className="p-10 flex justify-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
             <div className="bg-gradient-to-br from-purple-100 via-purple-200 to-purple-300 p-6 rounded-xl shadow-lg w-[28rem] text-center">
               <h2 className="text-2xl font-bold text-purple-800 mb-4">Word of the Day</h2>
-              <p className="text-2xl font-bold text-purple-900 mb-4">{wordOfDay.English}</p>
+              <div className="bg-white p-4 rounded-lg shadow mb-4 flex justify-between items-center">
+                <p className="text-2xl font-bold text-purple-900">{wordOfDay.English}</p>
+                <TextToSpeech text={wordOfDay.English} language="English" />
+              </div>
               <div className="space-y-3">
-                <div className="bg-white p-3 rounded-md shadow text-purple-700 text-lg">
-                  <span className="font-semibold">Hindi:</span> {wordOfDay.Hindi}
+                <div className="bg-white p-3 rounded-md shadow text-purple-700 text-lg flex justify-between items-center">
+                  <div>
+                    <span className="font-semibold">Hindi:</span> {wordOfDay.Hindi}
+                  </div>
+                  <TextToSpeech text={wordOfDay.Hindi} language="Hindi" />
                 </div>
-                <div className="bg-white p-3 rounded-md shadow text-purple-700 text-lg">
-                  <span className="font-semibold">Marathi:</span> {wordOfDay.Marathi}
+                <div className="bg-white p-3 rounded-md shadow text-purple-700 text-lg flex justify-between items-center">
+                  <div>
+                    <span className="font-semibold">Marathi:</span> {wordOfDay.Marathi}
+                  </div>
+                  <TextToSpeech text={wordOfDay.Marathi} language="Marathi" />
                 </div>
-                <div className="bg-white p-3 rounded-md shadow text-purple-700 text-lg">
-                  <span className="font-semibold">Sanskrit:</span> {wordOfDay.Sanskrit}
+                <div className="bg-white p-3 rounded-md shadow text-purple-700 text-lg flex justify-between items-center">
+                  <div>
+                    <span className="font-semibold">Sanskrit:</span> {wordOfDay.Sanskrit}
+                  </div>
+                  <TextToSpeech text={wordOfDay.Sanskrit} language="Sanskrit" />
                 </div>
               </div>
             </div>
           </motion.div>
         )}
 
-        {/* About Tab */}
-        {/* About Tab */}
-{activeTab === 'about' && (
-  <motion.div key="about" className="p-10 flex flex-col items-center relative"
-    initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+        {activeTab === 'about' && (
+          <motion.div key="about" className="p-10 flex flex-col items-center relative"
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
 
-    <h2 className="text-4xl font-bold mb-8 text-purple-800">About Bhasha-Vault</h2>
+            <h2 className="text-4xl font-bold mb-8 text-purple-800">About Bhasha-Vault</h2>
 
-    {/* Floating bubbles */}
-    <div className="absolute top-0 left-0 w-32 h-32 bg-purple-200 rounded-full opacity-30 animate-pulse -z-10"></div>
-    <div className="absolute top-20 right-0 w-24 h-24 bg-purple-300 rounded-full opacity-20 animate-pulse -z-10"></div>
-    <div className="absolute bottom-0 left-20 w-28 h-28 bg-purple-100 rounded-full opacity-25 animate-pulse -z-10"></div>
+            <div className="absolute top-0 left-0 w-32 h-32 bg-purple-200 rounded-full opacity-30 animate-pulse -z-10"></div>
+            <div className="absolute top-20 right-0 w-24 h-24 bg-purple-300 rounded-full opacity-20 animate-pulse -z-10"></div>
+            <div className="absolute bottom-0 left-20 w-28 h-28 bg-purple-100 rounded-full opacity-25 animate-pulse -z-10"></div>
 
-    <div className="bg-gradient-to-br from-purple-100 via-purple-50 to-purple-200 p-8 rounded-2xl shadow-lg w-full max-w-3xl text-purple-800 space-y-4">
-      <p className="text-lg">
-        Bhasha-Vault is a multilingual dictionary app designed to bridge language gaps and make learning new words fun and interactive. You can translate words between English, Hindi, Marathi, and Sanskrit.
-      </p>
-      <p className="text-lg font-semibold">Features include:</p>
-      <ul className="list-disc list-inside space-y-2 text-lg">
-        <li>Instant word translation between multiple languages</li>
-        <li>Speech-to-text input for supported languages (English, Marathi, Hindi)</li>
-        <li>Save favorite words with bookmarks</li>
-        <li>View your search history</li>
-        <li>Explore a new word every day with Word of the Day</li>
-      </ul>
-      <p className="text-lg">
-        This project is designed for <span className="font-semibold">Kaushiki Innovations</span>. The goal is to teach students languages using a domain-specific healthcare dictionary available in four languages.
-      </p>
-      <p className="text-lg">
-        <span className="font-semibold">Kaushiki Innovision</span> conducts research, trials, rigorous experimentation, and testing to develop robust, ruggedized solutions for real-world applications.
-      </p>
-      <p className="text-lg">
-        Our goal is to make multilingual learning accessible and enjoyable for everyone. 🌏
-      </p>
-    </div>
-  </motion.div>
-)}
-
+            <div className="bg-gradient-to-br from-purple-100 via-purple-50 to-purple-200 p-8 rounded-2xl shadow-lg w-full max-w-3xl text-purple-800 space-y-4">
+              <p className="text-lg">
+                Bhasha-Vault is a multilingual dictionary app designed to bridge language gaps and make learning new words fun and interactive. You can translate words between English, Hindi, Marathi, and Sanskrit.
+              </p>
+              <p className="text-lg font-semibold">Features include:</p>
+              <ul className="list-disc list-inside space-y-2 text-lg">
+                <li>Instant word translation between multiple languages</li>
+                <li>Speech-to-text input for supported languages (English, Marathi, Hindi)</li>
+                <li>Text-to-speech pronunciation for all languages</li>
+                <li>Save favorite words with bookmarks</li>
+                <li>View your search history</li>
+                <li>Explore a new word every day with Word of the Day</li>
+              </ul>
+              <p className="text-lg">
+                This project is designed for <span className="font-semibold">Kaushiki Innovations</span>. The goal is to teach students languages using a domain-specific healthcare dictionary available in four languages.
+              </p>
+              <p className="text-lg">
+                <span className="font-semibold">Kaushiki Innovision</span> conducts research, trials, rigorous experimentation, and testing to develop robust, ruggedized solutions for real-world applications.
+              </p>
+              <p className="text-lg">
+                Our goal is to make multilingual learning accessible and enjoyable for everyone. 🌏
+              </p>
+            </div>
+          </motion.div>
+        )}
 
       </AnimatePresence>
     </div>
