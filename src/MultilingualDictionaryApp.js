@@ -8,6 +8,10 @@ import { saveUserDataEncrypted, getUserDataDecrypted } from './services/firebase
 import { signInWithPopup, signOut } from 'firebase/auth';
 import SpeechToText from './SpeechToText';
 import Chatbot from "./Chatbot";
+import OCRScanner from './OCRScanner';
+import OCRDictionary from './OCRDictionary';
+import { Camera } from 'lucide-react'; // example icon for nav
+
 
 // Text-to-Speech Component
 function TextToSpeech({ text, language, className = "" }) {
@@ -139,6 +143,8 @@ export default function MultilingualDictionaryApp() {
   const [showKeyboard, setShowKeyboard] = useState(false);
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [ocrWords, setOCRWords] = useState([]);  // words extracted from image
+  const [selectedOCRWord, setSelectedOCRWord] = useState(''); // the word user selects
   
 
   const devanagariKeys = [
@@ -296,6 +302,7 @@ export default function MultilingualDictionaryApp() {
           { id: 'bookmarks', icon: <Star />, label: 'Bookmarks' },
           { id: 'history', icon: <Clock />, label: 'History' },
           { id: 'word', icon: <Sparkles />, label: 'Word of the Day' },
+          { id: 'ocr', icon: <Camera />, label: 'OCR' },
           { id: 'about', icon: <Book />, label: 'About' }
         ].map(tab => (
           <button
@@ -521,6 +528,88 @@ export default function MultilingualDictionaryApp() {
           </motion.div>
         )}
 
+{activeTab === 'ocr' && (
+<motion.div key="ocr" className="p-8 flex flex-col items-center"
+initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+
+<h2 className="text-3xl font-bold mb-6 text-purple-800">OCR Translation</h2>
+
+{/* OCR Scanner */}
+<OCRScanner onTextExtracted={(text) => {
+  // Extract multilingual words (English + Devanagari)
+  const words = text.match(/\p{L}+/gu) || [];
+  setOCRWords(words);
+  setSelectedOCRWord('');
+}} />
+
+{/* Show extracted words */}
+{ocrWords.length > 0 && (
+  <div className="mt-4 w-full max-w-md bg-purple-50 p-4 rounded-xl shadow-md">
+    <p className="font-semibold text-purple-700 mb-2">Select a word:</p>
+    <div className="flex flex-wrap gap-2">
+      {ocrWords.map((word, i) => (
+        <button
+          key={i}
+          onClick={() => {
+            setSelectedOCRWord(word);
+            setInputWord(word);
+            handleSearch();
+          }}
+          className={`px-3 py-1 rounded-lg shadow-sm text-purple-800 bg-white hover:bg-purple-100 transition ${
+            selectedOCRWord === word ? 'bg-purple-200 font-semibold' : ''
+          }`}
+        >
+          {word}
+        </button>
+      ))}
+    </div>
+  </div>
+)}
+
+{/* Language selection */}
+<div className="flex gap-4 mt-6 w-full max-w-md">
+  <select
+    value={fromLang}
+    onChange={(e) => setFromLang(e.target.value)}
+    className="flex-1 px-4 py-2 rounded-lg text-purple-800 bg-white shadow-sm"
+  >
+    {languages.map(l => <option key={l}>{l}</option>)}
+  </select>
+  <select
+    value={toLang}
+    onChange={(e) => setToLang(e.target.value)}
+    className="flex-1 px-4 py-2 rounded-lg text-purple-800 bg-white shadow-sm"
+  >
+    {languages.map(l => <option key={l}>{l}</option>)}
+  </select>
+</div>
+
+{/* Translate button */}
+<button
+  onClick={() => {
+    if (!selectedOCRWord) return;
+    setInputWord(selectedOCRWord);
+    handleSearch();
+  }}
+  className="mt-4 w-full max-w-md bg-purple-500 hover:bg-purple-600 text-white px-6 py-3 rounded-xl font-semibold shadow-md"
+>
+  Translate Selected Word
+</button>
+
+{/* Display Result */}
+{outputWord && (
+  <div className="mt-4 w-full max-w-md bg-white p-4 rounded-xl shadow-md flex justify-between items-center">
+    <p className="text-purple-800 text-lg">{outputWord}</p>
+    <TextToSpeech
+      text={outputWord.includes('→') ? outputWord.split('→')[1].trim() : outputWord}
+      language={toLang}
+    />
+  </div>
+)}
+
+</motion.div>
+)}
+
         {activeTab === 'about' && (
           <motion.div key="about" className="p-10 flex flex-col items-center relative"
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
@@ -561,3 +650,4 @@ export default function MultilingualDictionaryApp() {
     </div>
   );
 }
+
