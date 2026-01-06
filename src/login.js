@@ -1,31 +1,62 @@
-// src/Login.js
 import React, { useState } from 'react';
-import { auth, googleProvider } from './firebase';
-import { signInWithEmailAndPassword, signInWithPopup } from 'firebase/auth';
+import { auth } from './firebase';
+import {
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword
+} from 'firebase/auth';
+import { doc, setDoc } from 'firebase/firestore';
+import { db } from './firebase';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
-  const handleEmailLogin = async () => {
+  // LOGIN
+  const handleLogin = async () => {
     try {
       await signInWithEmailAndPassword(auth, email, password);
+      setError('');
     } catch (err) {
-      setError(err.message);
+      if (err.code === 'auth/user-not-found') {
+        setError('User not found. Please create an account.');
+      } else if (err.code === 'auth/wrong-password') {
+        setError('Incorrect password.');
+      } else {
+        setError(err.message);
+      }
     }
   };
 
-  const handleGoogleLogin = async () => {
+  // SIGN UP (AUTO REGISTER USER)
+  const handleSignup = async () => {
     try {
-      await signInWithPopup(auth, googleProvider);
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+
+      const user = userCredential.user;
+
+      // Create Firestore user document
+      await setDoc(doc(db, 'users', user.uid), {
+        email: user.email,
+        bookmarks: [],
+        history: [],
+        encrypted: true,
+        createdAt: new Date().toISOString()
+      });
+
+      alert('Account created successfully! You can now login.');
+      setError('');
     } catch (err) {
       setError(err.message);
     }
   };
 
   return (
-    <div className="min-h-screen flex flex-col justify-center items-center bg-purple-50 p-4">
+    <div className="min-h-screen flex justify-center items-center bg-purple-50">
       <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-md text-center">
         <h2 className="text-2xl font-bold text-purple-800 mb-6">Login</h2>
 
@@ -36,28 +67,29 @@ export default function Login() {
           placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full p-3 mb-4 border rounded text-purple-700 focus:ring-2 focus:ring-purple-300"
+          className="w-full p-3 mb-4 border rounded"
         />
+
         <input
           type="password"
           placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full p-3 mb-4 border rounded text-purple-700 focus:ring-2 focus:ring-purple-300"
+          className="w-full p-3 mb-4 border rounded"
         />
 
         <button
-          onClick={handleEmailLogin}
-          className="w-full bg-purple-500 text-white px-4 py-3 rounded mb-3 hover:bg-purple-600 transition"
+          onClick={handleLogin}
+          className="w-full bg-purple-500 text-white py-3 rounded"
         >
-          Login with Email
+          Login
         </button>
 
         <button
-          onClick={handleGoogleLogin}
-          className="w-full bg-red-500 text-white px-4 py-3 rounded hover:bg-red-600 transition"
+          onClick={handleSignup}
+          className="w-full bg-green-500 text-white py-3 rounded mt-2"
         >
-          Login with Google
+          Create Account
         </button>
       </div>
     </div>

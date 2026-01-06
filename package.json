@@ -2,7 +2,8 @@
   "name": "multilingual-dictionary",
   "version": "1.0.0",
   "private": true,
-  "main": "electron-main.js",
+  "homepage": "./",
+  "main": "electron.js",
   "dependencies": {
     "better-sqlite3": "^12.4.1",
     "crypto-js": "^4.2.0",
@@ -22,7 +23,7 @@
     "autoprefixer": "^10.4.14",
     "concurrently": "^9.2.1",
     "cross-env": "^10.1.0",
-    "electron": "^39.1.2",
+    "electron": "^39.2.7",
     "electron-builder": "^26.0.12",
     "eslint-plugin-react-hooks": "^7.0.1",
     "postcss": "^8.4.31",
@@ -40,29 +41,31 @@
     "eject": "react-scripts eject"
   },
   "build": {
-    "appId": "com.sakshi.multilingualdictionary",
-    "productName": "Multilingual Dictionary",
-    "directories": {
-      "output": "dist"
-    },
-    "files": [
-      "build/**/*",
-      "node_modules/**/*",
-      "package.json"
-    ],
-    "win": {
-      "target": "nsis"
-    },
-    "mac": {
-      "target": "dmg"
-    },
-    "linux": {
-      "target": [
-        "AppImage",
-        "deb"
-      ]
-    }
+  "appId": "com.sakshi.multilingualdictionary",
+  "productName": "Multilingual Dictionary",
+  "directories": {
+    "output": "dist"
   },
+  "files": [
+    "build/**/*",
+    "electron.js",
+    "electron-preload.js",
+    "db.js",
+    "dictionary.db",
+    "package.json",
+    "node_modules/**/*"
+  ],
+  "win": {
+    "target": ["nsis"]
+  },
+  "mac": {
+    "target": "dmg"
+  },
+  "linux": {
+    "target": ["AppImage", "deb"]
+  }
+}
+,
   "browserslist": {
     "production": [
       ">0.2%",

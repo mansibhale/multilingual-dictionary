@@ -2,15 +2,16 @@ import Papa from 'papaparse';
 import React, { useState, useEffect } from 'react';
 import { Book, Star, Clock, Home, Sparkles, X, LogOut, Volume2, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { db, auth, googleProvider } from './firebase';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { saveUserDataEncrypted, getUserDataDecrypted } from './services/firebaseService';
-import { signInWithPopup, signOut } from 'firebase/auth';
 import SpeechToText from './SpeechToText';
 import Chatbot from "./Chatbot";
 import OCRScanner from './OCRScanner';
 import OCRDictionary from './OCRDictionary';
 import { Camera } from 'lucide-react'; // example icon for nav
+import { signInWithEmailAndPassword, signOut } from "firebase/auth";
+import { auth } from './firebase';
+
 
 
 // Text-to-Speech Component
@@ -173,7 +174,27 @@ export default function MultilingualDictionaryApp() {
       }
     }
     loadDictionary();
-  }, []);
+  }, []);useEffect(() => {
+  async function loadDictionary() {
+    try {
+      // Check if window.database exists first
+      if (!window.database || !window.database.getWords) {
+        console.warn('Database API not available. Are you running inside Electron?');
+        return;
+      }
+
+      const data = await window.database.getWords();
+      console.log('Dictionary loaded:', data); // optional: log to debug
+      setDictionary(data);
+      pickWordOfDay(data);
+    } catch (err) {
+      console.error("Error loading dictionary:", err);
+    }
+  }
+
+  loadDictionary();
+}, []);
+
 
   const saveUserData = async (bookmarks, history) => {
     if (!user) return;
@@ -214,19 +235,22 @@ export default function MultilingualDictionaryApp() {
     saveUserData(bookmarks, history);
   }, [bookmarks, history]);
 
-  const handleLogin = async () => {
-    try {
-      const result = await signInWithPopup(auth, googleProvider);
-      setUser(result.user);
-    } catch (error) {
-      console.error("Login error:", error);
-    }
-  };
 
-  const handleLogout = async () => {
-    await signOut(auth);
-    setUser(null);
-  };
+const handleLogin = async (email, password) => {
+  try {
+    const result = await signInWithEmailAndPassword(auth, email, password);
+    setUser(result.user);
+  } catch (error) {
+    console.error("Login error:", error);
+    alert(error.message);
+  }
+};
+
+const handleLogout = async () => {
+  await signOut(auth);
+  setUser(null);
+};
+
 
   const handleSearch = () => {
     if (inputWord.trim() === '') return;

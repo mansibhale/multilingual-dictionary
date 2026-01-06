@@ -1,8 +1,12 @@
-// scripts/copy-electron-files.js
 const fs = require('fs');
 const path = require('path');
 
-const filesToCopy = ['electron-preload.js', 'electron-main.js'];
+// Only copy React frontend assets if needed (example: some static assets)
+const filesToCopy = [
+  // 'some-frontend-asset.png',
+  // 'another-frontend-file.json'
+];
+
 const root = process.cwd();
 const buildDir = path.join(root, 'build');
 
@@ -14,10 +18,12 @@ if (!fs.existsSync(buildDir)) {
 filesToCopy.forEach((file) => {
   const src = path.join(root, file);
   const dest = path.join(buildDir, file);
+
   if (!fs.existsSync(src)) {
-    console.warn(`Warning: ${file} not found in project root. Make sure you've created it.`);
+    console.warn(`⚠️ ${file} not found, skipping`);
     return;
   }
+
   fs.copyFileSync(src, dest);
-  console.log(`Copied ${file} -> ${path.relative(root, dest)}`);
+  console.log(`✅ Copied ${file} → build/${file}`);
 });
