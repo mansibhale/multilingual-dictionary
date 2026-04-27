@@ -634,41 +634,50 @@ initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
 </motion.div>
 )}
 
-        {activeTab === 'about' && (
-          <motion.div key="about" className="p-10 flex flex-col items-center relative"
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+       {activeTab === 'about' && (
+  <motion.div
+    key="about"
+    className="p-10 flex flex-col items-center relative"
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    exit={{ opacity: 0 }}
+  >
+    <h2 className="text-4xl font-bold mb-8 text-purple-800">About Bhasha-Vault</h2>
 
-            <h2 className="text-4xl font-bold mb-8 text-purple-800">About Bhasha-Vault</h2>
+    <div className="absolute top-0 left-0 w-32 h-32 bg-purple-200 rounded-full opacity-30 animate-pulse -z-10"></div>
+    <div className="absolute top-20 right-0 w-24 h-24 bg-purple-300 rounded-full opacity-20 animate-pulse -z-10"></div>
+    <div className="absolute bottom-0 left-20 w-28 h-28 bg-purple-100 rounded-full opacity-25 animate-pulse -z-10"></div>
 
-            <div className="absolute top-0 left-0 w-32 h-32 bg-purple-200 rounded-full opacity-30 animate-pulse -z-10"></div>
-            <div className="absolute top-20 right-0 w-24 h-24 bg-purple-300 rounded-full opacity-20 animate-pulse -z-10"></div>
-            <div className="absolute bottom-0 left-20 w-28 h-28 bg-purple-100 rounded-full opacity-25 animate-pulse -z-10"></div>
+    <div className="bg-gradient-to-br from-purple-100 via-purple-50 to-purple-200 p-8 rounded-2xl shadow-lg w-full max-w-3xl text-purple-800 space-y-4">
+      <p className="text-lg">
+        Bhasha-Vault is a multilingual dictionary app designed to bridge language gaps and make learning new words fun and interactive, specifically in the <span className="font-semibold">healthcare domain</span>. You can translate words between English, Hindi, Marathi, and Sanskrit, helping students and healthcare professionals understand medical terminology across languages.
+      </p>
 
-            <div className="bg-gradient-to-br from-purple-100 via-purple-50 to-purple-200 p-8 rounded-2xl shadow-lg w-full max-w-3xl text-purple-800 space-y-4">
-              <p className="text-lg">
-                Bhasha-Vault is a multilingual dictionary app designed to bridge language gaps and make learning new words fun and interactive. You can translate words between English, Hindi, Marathi, and Sanskrit.
-              </p>
-              <p className="text-lg font-semibold">Features include:</p>
-              <ul className="list-disc list-inside space-y-2 text-lg">
-                <li>Instant word translation between multiple languages</li>
-                <li>Speech-to-text input for supported languages (English, Marathi, Hindi)</li>
-                <li>Text-to-speech pronunciation for all languages</li>
-                <li>Save favorite words with bookmarks</li>
-                <li>View your search history</li>
-                <li>Explore a new word every day with Word of the Day</li>
-              </ul>
-              <p className="text-lg">
-                This project is designed for <span className="font-semibold">Kaushiki Innovations</span>. The goal is to teach students languages using a domain-specific healthcare dictionary available in four languages.
-              </p>
-              <p className="text-lg">
-                <span className="font-semibold">Kaushiki Innovision</span> conducts research, trials, rigorous experimentation, and testing to develop robust, ruggedized solutions for real-world applications.
-              </p>
-              <p className="text-lg">
-                Our goal is to make multilingual learning accessible and enjoyable for everyone. 🌏
-              </p>
-            </div>
-          </motion.div>
-        )}
+      <p className="text-lg font-semibold">Features include:</p>
+      <ul className="list-disc list-inside space-y-2 text-lg">
+        <li>Instant word translation between multiple languages</li>
+        <li>Speech-to-text input for supported languages (English, Marathi, Hindi)</li>
+        <li>Text-to-speech pronunciation for all languages</li>
+        <li>Save favorite words with bookmarks</li>
+        <li>View your search history</li>
+        <li>Explore a new word every day with Word of the Day</li>
+      </ul>
+
+      <p className="text-lg">
+        This project is designed for <span className="font-semibold">Kaushiki Innovations</span>. The goal is to teach students languages using a <span className="font-semibold">domain-specific healthcare dictionary</span> available in four languages.
+      </p>
+
+      <p className="text-lg">
+        <span className="font-semibold">Kaushiki Innovision</span> conducts research, trials, rigorous experimentation, and testing to develop robust, ruggedized solutions for real-world applications.
+      </p>
+
+      <p className="text-lg">
+        Our goal is to make multilingual learning accessible and enjoyable for everyone. 🌏
+      </p>
+    </div>
+  </motion.div>
+)}
+
 
       </AnimatePresence>
     </div>

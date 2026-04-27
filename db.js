@@ -1,15 +1,20 @@
-// db.js
 const path = require('path');
 const sqlite3 = require('sqlite3').verbose();
+const { app } = require('electron');
 
-// Load the database
-const dbPath = path.join(__dirname, 'dictionary.db');
+const isDev = process.env.ELECTRON_START_URL !== undefined || process.env.NODE_ENV === 'development';
+
+const dbPath = isDev
+  ? path.join(__dirname, 'dictionary.db')
+  : path.join(process.resourcesPath, 'app.asar.unpacked', 'build', 'dictionary.db');
+
+console.log('📂 DB Path:', dbPath);
+
 const db = new sqlite3.Database(dbPath, (err) => {
   if (err) console.error('❌ Database connection error:', err.message);
   else console.log('✅ Connected to SQLite database.');
 });
 
-// Function to get all words
 function getWords(callback) {
   db.all('SELECT * FROM dictionary', [], (err, rows) => {
     if (err) callback(err);
@@ -17,5 +22,4 @@ function getWords(callback) {
   });
 }
 
-// Export db helper functions
 module.exports = { db, getWords };

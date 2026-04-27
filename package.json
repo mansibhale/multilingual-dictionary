@@ -1,81 +1,87 @@
 {
-  "name": "multilingual-dictionary",
-  "version": "1.0.0",
-  "private": true,
-  "homepage": "./",
-  "main": "electron.js",
-  "dependencies": {
-    "better-sqlite3": "^12.4.1",
-    "crypto-js": "^4.2.0",
-    "csv-parser": "^3.2.0",
-    "firebase": "^12.4.0",
-    "framer-motion": "^10.12.16",
-    "lucide-react": "^0.264.0",
-    "papaparse": "^5.5.3",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-scripts": "5.0.1",
-    "sqlite3": "^5.1.7",
-    "tesseract.js": "^6.0.1",
-    "web-vitals": "^5.1.0"
-  },
-  "devDependencies": {
-    "autoprefixer": "^10.4.14",
-    "concurrently": "^9.2.1",
-    "cross-env": "^10.1.0",
-    "electron": "^39.2.7",
-    "electron-builder": "^26.0.12",
-    "eslint-plugin-react-hooks": "^7.0.1",
-    "postcss": "^8.4.31",
-    "tailwindcss": "^3.3.3",
-    "wait-on": "^9.0.1"
-  },
-  "scripts": {
-    "start": "react-scripts start",
-    "electron:dev": "concurrently -k \"cross-env BROWSER=none npm start\" \"wait-on http://localhost:3000 && cross-env ELECTRON_START_URL=http://localhost:3000 electron .\"",
-    "build": "react-scripts build",
-    "postbuild": "node ./scripts/copy-electron-files.js",
-    "dist": "npm run build && electron-builder --dir",
-    "package": "npm run build && electron-builder",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
-  },
-  "build": {
-  "appId": "com.sakshi.multilingualdictionary",
-  "productName": "Multilingual Dictionary",
-  "directories": {
-    "output": "dist"
-  },
-  "files": [
-    "build/**/*",
-    "electron.js",
-    "electron-preload.js",
-    "db.js",
-    "dictionary.db",
-    "package.json",
-    "node_modules/**/*"
-  ],
-  "win": {
-    "target": ["nsis"]
-  },
-  "mac": {
-    "target": "dmg"
-  },
-  "linux": {
-    "target": ["AppImage", "deb"]
-  }
-}
-,
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
-  }
+   "name": "multilingual-dictionary",
+   "version": "1.0.0",
+   "private": true,
+   "description": "A multilingual dictionary application",
+   "author": "Mansi",
+   "homepage": "./",
+   "main": "build/electron.js",
+   "dependencies": {
+      "better-sqlite3": "^12.4.1",
+      "crypto-js": "^4.2.0",
+      "csv-parser": "^3.2.0",
+      "firebase": "^12.4.0",
+      "framer-motion": "^10.12.16",
+      "lucide-react": "^0.264.0",
+      "papaparse": "^5.5.3",
+      "react": "^18.2.0",
+      "react-dom": "^18.2.0",
+      "react-scripts": "5.0.1",
+      "sqlite3": "^5.1.7",
+      "tesseract.js": "^6.0.1",
+      "web-vitals": "^5.1.0"
+   },
+   "devDependencies": {
+      "autoprefixer": "^10.4.14",
+      "concurrently": "^9.2.1",
+      "cross-env": "^10.1.0",
+      "electron": "^39.2.7",
+      "electron-builder": "^26.8.1",
+      "eslint-plugin-react-hooks": "^7.0.1",
+      "postcss": "^8.4.31",
+      "tailwindcss": "^3.3.3",
+      "typescript": "^4.9.5",
+      "wait-on": "^9.0.1"
+   },
+   "scripts": {
+      "start": "react-scripts start",
+      "electron:dev": "concurrently -k \"cross-env BROWSER=none npm start\" \"wait-on http://localhost:3000 && cross-env ELECTRON_START_URL=http://localhost:3000 electron .\"",
+      "build": "react-scripts build",
+      "postbuild": "node ./scripts/copy-electron-files.js",
+      "dist": "npm run build && electron-builder --dir",
+      "package": "npm run build && electron-builder",
+      "test": "react-scripts test",
+      "eject": "react-scripts eject"
+   },
+   "build": {
+      "appId": "com.sakshi.multilingualdictionary",
+      "productName": "Multilingual Dictionary",
+      "directories": {
+         "output": "dist"
+      },
+      "files": [
+         "build/**/*",
+         "package.json"
+      ],
+      "asarUnpack": [
+         "build/dictionary.db"
+      ],
+      "extraMetadata": {
+         "main": "build/electron.js"
+      },
+      "win": {
+         "target":["zip"]
+      },
+      "mac": {
+         "target": "dmg"
+      },
+      "linux": {
+         "target": [
+            "AppImage",
+            "deb"
+         ]
+      }
+   },
+   "browserslist": {
+      "production": [
+         ">0.2%",
+         "not dead",
+         "not op_mini all"
+      ],
+      "development": [
+         "last 1 chrome version",
+         "last 1 firefox version",
+         "last 1 safari version"
+      ]
+   }
 }

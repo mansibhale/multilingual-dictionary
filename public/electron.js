@@ -1,6 +1,6 @@
-// electron.js
+console.log("Electron starting...");
 const path = require('path');
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, ipcMain } = require('electron');
 
 const isDev = process.env.ELECTRON_START_URL !== undefined || process.env.NODE_ENV === 'development';
 
@@ -15,23 +15,18 @@ function createWindow() {
     }
   });
 
-  
   win.setMenuBarVisibility(false);
   win.setMenu(null);
-
-
 
   if (isDev) {
     const url = process.env.ELECTRON_START_URL || 'http://localhost:3000';
     win.loadURL(url);
   } else {
-    win.loadFile(path.join(__dirname, 'build', 'index.html'));
+    win.loadFile(path.join(__dirname, 'index.html'));
   }
 }
 
-
-const { ipcMain } = require('electron');
-const db = require('./db');  // Import our db helper
+const db = require('./db');
 
 ipcMain.handle('get-words', async () => {
   return new Promise((resolve, reject) => {
@@ -42,15 +37,12 @@ ipcMain.handle('get-words', async () => {
   });
 });
 
-
 app.whenReady().then(createWindow);
 
 app.on('window-all-closed', () => {
-  // On macOS typical behavior is to keep app open until user quits explicitly
   if (process.platform !== 'darwin') app.quit();
 });
 
 app.on('activate', () => {
-  // Recreate a window on macOS when the dock icon is clicked
   if (BrowserWindow.getAllWindows().length === 0) createWindow();
 });
